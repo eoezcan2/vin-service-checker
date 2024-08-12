@@ -1,16 +1,22 @@
 <script>
 import { RouterView } from 'vue-router'
+import NavigationComponent from './components/navigation-component.vue';
+// import HeaderComponent from './components/header-component.vue';
 
   export default {
     name: 'App',
     components: {
-      RouterView
+      RouterView,
+      NavigationComponent,
+      // HeaderComponent
     }
   }
 </script>
 
 <template>
   <main>
+    <NavigationComponent />
+    <!--<HeaderComponent />-->
     <router-view />
   </main>
 </template>
@@ -22,13 +28,7 @@ import { RouterView } from 'vue-router'
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
-}
-
-input[type="text"] {
-  width: 25%;
-  height: 1.5rem;
-  text-align: center;
+  margin-top: 20px;
 }
 
 button {
@@ -36,7 +36,24 @@ button {
   border-radius: 5px;
   padding: 10px;
   cursor: pointer;
-  background-color: #ff0202;
+  background-color: #4CAF50;
   color: white;
+  width: 100px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+button:active {
+  background-color: #3e8e41;
+}
+
+button:focus {
+  outline: none;
+}
+
+.danger {
+  background-color: #ff0000;
 }
 </style>
