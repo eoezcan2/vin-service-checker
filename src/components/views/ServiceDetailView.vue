@@ -13,6 +13,7 @@ onMounted(() => {
     fetch(`http://localhost:3000/api/vin/${route.params.vin}/data`)
         .then(response => response.json())
         .then(response => {
+            console.log(response)
             data.value = response
             loaded.value = true
         })
@@ -24,8 +25,8 @@ onMounted(() => {
 
 <template>
     <div v-if="loaded">
-        <p>Name: <b>{{ data.name }}</b></p>
-        <p>Type: <b>{{ data.type }}</b></p>
+        <p>Name: <b>{{ data[0].name }}</b></p>
+        <p>Type: <b>{{ data[0].type }}</b></p>
         <p>VIN: <b>{{ vin }}</b></p>
     </div>
     <button @click="$router.push('/')">Back</button>
