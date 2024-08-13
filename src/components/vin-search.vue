@@ -39,14 +39,6 @@
         color: red;
     }
 
-    input[type="text"] {
-        width: 25%;
-        min-width: 200px;
-        height: 2rem;
-        text-align: center;
-        font-size: 1rem;
-    }
-
     button {
         width: 30px;
     }

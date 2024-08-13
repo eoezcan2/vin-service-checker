@@ -31,6 +31,14 @@ import NavigationComponent from './components/navigation-component.vue';
   margin-top: 20px;
 }
 
+input[type="text"], input[type="password"] {
+  width: 25%;
+  min-width: 200px;
+  height: 2rem;
+  text-align: center;
+  font-size: 1rem;
+}
+
 button {
   border: none;
   border-radius: 5px;
