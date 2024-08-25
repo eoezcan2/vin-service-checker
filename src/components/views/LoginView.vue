@@ -8,17 +8,24 @@
 
     const router = useRouter()
 
+    function validateEmail(email) {
+        const re = /\S+@\S+\.\S+/
+        return re.test(email)
+    }
+    
     const login = () => {
+        if (!validateEmail(email.value)) {
+            alert('Invalid email')
+            return
+        }
         axios.post('http://localhost:3000/users/login', {
             email: email.value,
             password: password.value
-        })
-        .then((response) => {
+        }).then((response) => {
             if (response.status === 200) {
                 router.push('/')
             }
-        })
-        .catch((error) => {
+        }).catch((error) => {
             console.log(error)
             alert('Login failed')
         })

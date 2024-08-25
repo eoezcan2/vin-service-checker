@@ -21,12 +21,16 @@ onMounted(() => {
             console.log(error)
         })
 })
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
 </script>
 
 <template>
     <div v-if="loaded">
-        <p>Name: <b>{{ data[0].name }}</b></p>
-        <p>Type: <b>{{ data[0].type }}</b></p>
+        <p>Name: <b>{{ data.name }}</b></p>
+        <p>Type: <b>{{ capitalizeFirstLetter(data.type) }}</b></p>
         <p>VIN: <b>{{ vin }}</b></p>
     </div>
     <button @click="$router.push('/')">Back</button>
