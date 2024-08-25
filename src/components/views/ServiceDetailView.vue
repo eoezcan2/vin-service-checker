@@ -1,6 +1,7 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import { onMounted, ref } from 'vue';
+import axios from 'axios';
 
 const route = useRoute()
 const vin = ref(route.params.vin)
@@ -9,12 +10,10 @@ const data = ref({})
 const loaded = ref(false)
 
 onMounted(() => {
-    console.log(route.params.vin)
-    fetch(`http://localhost:3000/api/vin/${route.params.vin}/data`)
-        .then(response => response.json())
+    axios.get(`http://localhost:3000/api/vin/${route.params.vin}/data`)
         .then(response => {
             console.log(response)
-            data.value = response
+            data.value = response.data
             loaded.value = true
         })
         .catch(error => {

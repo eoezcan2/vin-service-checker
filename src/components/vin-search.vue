@@ -8,18 +8,17 @@
     const router = useRouter()
 
     function submitSearch() {
-        axios.get(`http://localhost:3000/api/vin/${inputVin.value}`)
-            .then(response => {
-                if (response.status !== 200) {
-                    throw new Error('Not found')
-                }
-                apiError.value = false
-                router.push(`/vin/${inputVin.value}`)
-            })
-            .catch(error => {
-                console.log(error)
-                apiError.value = true
-            })
+        console.log(localStorage.getItem('token'))
+        axios.get(`http://localhost:3000/api/vin/${inputVin.value}`).then(response => {
+            if (response.status !== 200) {
+                throw new Error('Not found')
+            }
+            apiError.value = false
+            router.push(`/vin/${inputVin.value}`)
+        }).catch(error => {
+            console.log(error)
+            apiError.value = true
+        })
     }
 </script>
 
