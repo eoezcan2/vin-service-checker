@@ -21,7 +21,7 @@ import { verify } from '@/api';
   <main>
     <NavigationComponent />
     <!--<HeaderComponent />-->
-    <div class="container-fluid mt-5">
+    <div class="mt-custom">
       <router-view />
     </div>
   </main>
@@ -32,6 +32,10 @@ import { verify } from '@/api';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
+}
+
+.mt-custom {
+  margin-top: 100px;
 }
 
 /*input[type="text"], input[type="password"] {

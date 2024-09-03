@@ -3,7 +3,7 @@
 
 <template>
     <div>
-        <p>Check out the code on 
+        <p>Code auf
             <a href="https://github.com/eoezcan2/vin-service-checker">Github</a>
         </p>
     </div>

@@ -7,6 +7,24 @@ function logout() {
   location.reload();
 }
 
+async function safeRequest(url, method, data) {
+  return axios({
+    method,
+    url: `http://localhost:8080/${url}`,
+    data,
+    headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+    }
+    }).then(response => {
+    return response;
+  }).catch(error => {
+    if (error.response.status === 401) {
+      logout();
+    }
+    return error.response;
+  });
+}
+
 async function verify() {
   if (!localStorage.getItem('token')) return;
   axios.get('http://localhost:8080/verify', {
@@ -24,5 +42,6 @@ async function verify() {
 export {
   isTokenPresent,
   logout,
-  verify
+  verify,
+  safeRequest
 }

@@ -1,9 +1,10 @@
 <script setup>
 import { isTokenPresent } from '@/api';
 import router from '@/router';
-import { onMounted } from 'vue';
+import { onBeforeMount } from 'vue';
+import MaintenanceEditComponent from '../maintenance-edit-component.vue';
 
-onMounted(() => {
+onBeforeMount(() => {
     if (!isTokenPresent) {
         router.push('/login')
     }
@@ -12,7 +13,7 @@ onMounted(() => {
 
 <template>
     <div>
-        <h1>Account</h1>
-        <p>This is the account page. Here you can see your account details and manage your account.</p>
+        <h1>Fahrzeuge verwalten</h1>
+        <MaintenanceEditComponent class="pt-3 container w-75 d-flex justify-content-center align-items-center flex-column"/>
     </div>
 </template>

@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <h2>Check the service book of your vehicle</h2>
+    <h2>Finde das Servicebuch eines Fahrzeuges</h2>
     <VinSearch class="pt-3"/>
 </template>
 
