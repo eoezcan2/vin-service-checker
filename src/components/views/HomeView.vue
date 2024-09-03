@@ -3,8 +3,8 @@
 </script>
 
 <template>
-    <h1>Check the service book of your vehicle.</h1>
-    <VinSearch />
+    <h2>Check the service book of your vehicle</h2>
+    <VinSearch class="pt-3"/>
 </template>
 
 <style scoped>

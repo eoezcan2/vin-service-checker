@@ -27,8 +27,13 @@ watch(isTokenPresent, async () => {
             </li>
           </ul>
           <span class="navbar-text">
-            <router-link class="btn btn-dark p-2 text-light" to="/login" v-if="!isTokenPresent">Login</router-link>
-              <a class="btn btn-dark p-2 text-light" href="#" @click="logout" v-else>Logout</a>
+            <router-link class="btn btn-dark text-light" to="/login" v-if="!isTokenPresent">Login</router-link>
+            <span v-else>
+              <router-link class="me-3" to="/account" >
+                <img src="/avatar.svg" alt="avatar" width="20" height="20">
+              </router-link>
+              <a class="btn btn-dark text-light" href="#" @click="logout">Logout</a>
+            </span>
           </span>
         </div>
       </div>

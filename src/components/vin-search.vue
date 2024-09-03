@@ -18,14 +18,15 @@
         }).catch(error => {
             console.log(error)
             apiError.value = true
+            inputVin.value = ''
         })
     }
 </script>
 
 <template>
-    <div>
-        <input type="text" v-model="inputVin" placeholder="VIN" v-on:keyup.enter="submitSearch">
-        <p class="error" v-if="apiError">Not found</p>
+    <div class="container-fluid d-flex justify-content-center flex-column w-25">
+        <input class="form-control text-center" type="text" v-model="inputVin" placeholder="VIN" v-on:keyup.enter="submitSearch">
+        <p class="text-danger pt-2" v-if="apiError">Not found</p>
     </div>
 </template>
 

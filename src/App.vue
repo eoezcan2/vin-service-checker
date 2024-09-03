@@ -2,6 +2,7 @@
 import { RouterView } from 'vue-router'
 import NavigationComponent from './components/navigation-component.vue';
 // import HeaderComponent from './components/header-component.vue';
+import { verify } from '@/api';
 
   export default {
     name: 'App',
@@ -9,6 +10,9 @@ import NavigationComponent from './components/navigation-component.vue';
       RouterView,
       NavigationComponent,
       // HeaderComponent
+    },
+    mounted() {
+      verify()
     }
   }
 </script>
