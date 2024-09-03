@@ -10,7 +10,7 @@ const data = ref({})
 const loaded = ref(false)
 
 onMounted(() => {
-    axios.get(`http://localhost:3000/api/vin/${route.params.vin}/data`)
+    axios.get(`http://localhost:8080/api/vin/${route.params.vin}/data`)
         .then(response => {
             console.log(response)
             data.value = response.data
@@ -32,5 +32,5 @@ function capitalizeFirstLetter(string) {
         <p>Type: <b>{{ capitalizeFirstLetter(data.type) }}</b></p>
         <p>VIN: <b>{{ vin }}</b></p>
     </div>
-    <button @click="$router.push('/')">Back</button>
+    <!--<button @click="$router.push('/')">Back</button>-->
 </template>

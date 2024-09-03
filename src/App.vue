@@ -17,21 +17,20 @@ import NavigationComponent from './components/navigation-component.vue';
   <main>
     <NavigationComponent />
     <!--<HeaderComponent />-->
-    <router-view />
+    <div class="container-fluid mt-5">
+      <router-view />
+    </div>
   </main>
 </template>
 
 <style>
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 20px;
 }
 
-input[type="text"], input[type="password"] {
+/*input[type="text"], input[type="password"] {
   width: 25%;
   min-width: 200px;
   height: 2rem;
@@ -63,5 +62,5 @@ button:focus {
 
 .danger {
   background-color: #ff0000;
-}
+}*/
 </style>

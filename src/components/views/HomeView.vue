@@ -8,7 +8,4 @@
 </template>
 
 <style scoped>
-    h2 {
-        font-size: 20px;
-    }
 </style>

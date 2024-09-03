@@ -8,8 +8,8 @@
     const router = useRouter()
 
     function submitSearch() {
-        console.log(localStorage.getItem('token'))
-        axios.get(`http://localhost:3000/api/vin/${inputVin.value}`).then(response => {
+        if (!inputVin.value) return
+        axios.get(`http://localhost:8080/api/vin/${inputVin.value}`).then(response => {
             if (response.status !== 200) {
                 throw new Error('Not found')
             }
@@ -30,19 +30,4 @@
 </template>
 
 <style scoped>
-    div {
-        margin-top: 30px;
-    }
-
-    .error {
-        color: red;
-    }
-
-    button {
-        width: 30px;
-    }
-
-    button svg {
-        fill: #fff;
-    }
 </style>

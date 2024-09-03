@@ -1,30 +1,27 @@
 <script setup>
-    import axios from 'axios';
-    import { ref } from 'vue'
+    import { isTokenPresent } from '@/api';
+import axios from 'axios';
+    import { onMounted, ref } from 'vue'
     import { useRouter } from 'vue-router'
 
-    const email = ref('')
+    const username = ref('')
     const password = ref('')
 
     const router = useRouter()
 
-    function validateEmail(email) {
-        const re = /\S+@\S+\.\S+/
-        return re.test(email)
-    }
+    onMounted(() => {
+        if (isTokenPresent) router.push('/')
+    })
     
     const login = () => {
-        if (!validateEmail(email.value)) {
-            alert('Invalid email')
-            return
-        }
-        axios.post('http://localhost:3000/users/login', {
-            email: email.value,
+        axios.post('http://localhost:8080/user/login', {
+            username: username.value,
             password: password.value
         }).then((response) => {
             if (response.status === 200) {
                 localStorage.setItem('token', response.data.token)
                 router.push('/')
+                location.reload()
             }
         }).catch((error) => {
             console.log(error)
@@ -35,7 +32,7 @@
 
 <template>
     <div>
-        <input type="text" v-model="email" placeholder="Email">
+        <input type="text" v-model="username" placeholder="Username">
         <input type="password" v-model="password" placeholder="Password">
         <button @click="login">Login</button>
     </div>
