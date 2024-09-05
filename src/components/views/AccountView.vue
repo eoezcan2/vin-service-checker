@@ -7,6 +7,8 @@ import MaintenanceEditComponent from '../maintenance-edit-component.vue';
 onBeforeMount(() => {
     if (!isTokenPresent) {
         router.push('/login')
+    } else {
+        console.log(localStorage.getItem('token'))
     }
 });
 </script>

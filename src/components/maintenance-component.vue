@@ -9,6 +9,7 @@ const props = defineProps({
     vin: String,
     edit: Boolean
 })
+
 let data = ref([])
 
 let newDate = ref('')
@@ -16,32 +17,6 @@ let newCategory = ref('')
 let newDescription = ref('')
 let newMileage = ref('')
 let newCost = ref('')
-
-function translateCategoryToFrontend(category) {
-    switch (category) {
-        case 'OILCHANGE':
-            return 'Ölwechsel'
-        case 'TIRECHANGE':
-            return 'Reifenwechsel'
-        case 'MISC':
-            return 'Sonstiges'
-        default:
-            return 'Unbekannt'
-    }
-}
-
-function translateCategoryToBackend(category) {
-    switch (category) {
-        case 'Ölwechsel':
-            return 'OILCHANGE'
-        case 'Reifenwechsel':
-            return 'TIRECHANGE'
-        case 'Sonstiges':
-            return 'MISC'
-        default:
-            return 'Unbekannt'
-    }
-}
 
 function getMaintenances() {
     axios.get(`http://localhost:8080/api/maintenance/${props.vin}`)
@@ -59,11 +34,22 @@ function addMaintenance() {
     safeRequest('api/maintenance', 'POST', {
         vin: props.vin,
         date: newDate.value,
-        category: translateCategoryToBackend(newCategory.value),
+        category: categories.findIndex(category => category === newCategory.value),
         description: newDescription.value,
         mileage: newMileage.value,
         cost: newCost.value
     }).then(response => {
+        console.log(response)
+        getMaintenances()
+    }).catch(error => {
+        console.log(error)
+    })
+}
+
+function removeMaintenance(id) {
+  console.log(id)
+  safeRequest(`api/maintenance/${id}`, 'DELETE', {})
+    .then(response => {
         console.log(response)
         getMaintenances()
     }).catch(error => {
@@ -97,17 +83,17 @@ onMounted(() => {
             <tbody>
                 <tr v-for="item in data" :key="item.id">
                     <td>{{ convertDate(item.date) }}</td>
-                    <td>{{ translateCategoryToFrontend(item.category) }}</td>
+                    <td>{{ item.category }}</td>
                     <td>{{ item.description }}</td>
                     <td>{{ item.mileage }} km</td>
                     <td>{{ item.cost }}€</td>
-                    <td v-if="props.edit"><button class="btn btn-danger">-</button></td>
+                    <td v-if="props.edit"><button class="btn btn-danger" @click="removeMaintenance(item.id)">-</button></td>
                 </tr>
                 <tr v-if="props.edit">
                     <td><input type="date" class="form-control" id="dateInput" v-model="newDate"></td>
                     <td>
                       <select v-model="newCategory">
-                        <option v-for="category in categories" :key="category">{{ translateCategoryToFrontend(category) }}</option>
+                        <option v-for="category in categories" :key="category">{{ category }}</option>
                       </select>
                     </td>
                     <td><input type="text" class="form-control" id="descriptionInput" v-model="newDescription"></td>

@@ -8,14 +8,16 @@ function logout() {
 }
 
 async function safeRequest(url, method, data) {
+  await verify();
   return axios({
     method,
     url: `http://localhost:8080/${url}`,
     data,
     headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
     }
-    }).then(response => {
+  }).then(response => {
+    console.log(response)
     return response;
   }).catch(error => {
     if (error.response.status === 401) {
