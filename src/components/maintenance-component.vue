@@ -18,6 +18,14 @@ let newDescription = ref('')
 let newMileage = ref('')
 let newCost = ref('')
 
+function clearInputs() {
+    newDate.value = ''
+    newCategory.value = ''
+    newDescription.value = ''
+    newMileage.value = ''
+    newCost.value = ''
+}
+
 function getMaintenances() {
     axios.get(`http://localhost:8080/api/maintenance/${props.vin}`)
         .then(response => {
@@ -44,6 +52,7 @@ function addMaintenance() {
     }).catch(error => {
         console.log(error)
     })
+    clearInputs()
 }
 
 function removeMaintenance(id) {
