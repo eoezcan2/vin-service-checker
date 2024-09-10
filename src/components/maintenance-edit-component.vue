@@ -1,22 +1,21 @@
 <script setup>
-import axios from 'axios';
 import { onMounted, ref } from 'vue';
 import MaintenanceComponent from "@/components/maintenance-component.vue";
 import VehiclecardComponent from "@/components/vehiclecard-component.vue";
+import {safeRequest} from "@/api";
 
 let data = ref([])
 let loaded = ref(false)
 
 onMounted(() => {
-    axios.get(`http://localhost:8080/api/vin/list`, {
-            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
-    }).then(response => {
+  safeRequest('api/vin/list', 'GET', {})
+      .then(response => {
         console.log(response)
         data.value = response.data
         loaded.value = true
-    }).catch(error => {
+      }).catch(error => {
         console.log(error)
-    })
+      })
 });
 </script>
 
