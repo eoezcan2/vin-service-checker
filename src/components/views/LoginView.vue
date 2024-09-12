@@ -76,12 +76,12 @@
       <div class="container w-25 p-3 border rounded">
         <div class="mb-3">
           <label for="registerEmail" class="form-label">E-Mail</label>
-          <input type="text" class="form-control" id="registerEmail" v-model="registerUsername" v-on:keyup.enter="register">
+          <input type="text" class="form-control" id="registerEmail" v-model="registerEmail" v-on:keyup.enter="register">
           <!--<div id="usernameHelp" class="form-text">We'll never share your email with anyone else.</div>-->
         </div>
         <div class="mb-3">
           <label for="registerUsername" class="form-label">Username</label>
-          <input type="text" class="form-control" id="registerUsername" v-model="registerEmail" v-on:keyup.enter="register">
+          <input type="text" class="form-control" id="registerUsername" v-model="registerUsername" v-on:keyup.enter="register">
           <!--<div id="usernameHelp" class="form-text">We'll never share your email with anyone else.</div>-->
         </div>
         <div class="mb-3">
