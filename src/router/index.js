@@ -5,12 +5,14 @@ import ServiceDetailView from './../components/views/ServiceDetailView.vue'
 import AboutView from '@/components/views/AboutView.vue'
 import LoginView from '@/components/views/LoginView.vue'
 import AccountView from '@/components/views/AccountView.vue'
+import AddVehicleView from "@/components/views/AddVehicleView.vue";
 
 const routes = [
     { path: '/', component: HomeView },
     { path: '/about', component: AboutView },
     { path: '/login', component: LoginView},
     { path: '/account', component: AccountView },
+    { path: '/addvehicle', component: AddVehicleView },
     { path: '/vin/:vin', component: ServiceDetailView }
 ]
 

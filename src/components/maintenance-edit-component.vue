@@ -7,7 +7,7 @@ import {safeRequest} from "@/api";
 let data = ref([])
 let loaded = ref(false)
 
-onMounted(() => {
+onMounted( () => {
   safeRequest('api/vin/list', 'GET', {})
       .then(response => {
         console.log(response)
@@ -26,6 +26,11 @@ onMounted(() => {
           <VehiclecardComponent :vin="data[i-1]" class="py-3"/>
           <MaintenanceComponent :vin="data[i-1]" edit class="pt-3"/>
         </div>
+      </div>
+    </div>
+    <div v-else>
+      <div class="spinner-border" role="status">
+        <span class="sr-only"></span>
       </div>
     </div>
 </template>

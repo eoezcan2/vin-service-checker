@@ -1,4 +1,5 @@
 import axios from "axios";
+import router from "@/router";
 
 const isTokenPresent = !!localStorage.getItem('token')
 
@@ -41,9 +42,19 @@ async function verify() {
   });
 }
 
+function validateLogin() {
+  if (!isTokenPresent) {
+    router.push('/login')
+  } else {
+    console.log(localStorage.getItem('token'))
+  }
+}
+
 export {
   isTokenPresent,
   logout,
   verify,
-  safeRequest
+  safeRequest,
+  validateLogin
 }
+
