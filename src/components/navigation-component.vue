@@ -1,14 +1,6 @@
 <script setup>
-import {isTokenPresent, logout, verify} from '@/api';
-import {onMounted, watch} from 'vue';
+import {isTokenPresent, logout} from '@/api';
 
-watch(isTokenPresent, async () => {
-    console.log('Token present:', isTokenPresent)
-})
-
-onMounted(() => {
-    verify()
-})
 </script>
 
 <template>

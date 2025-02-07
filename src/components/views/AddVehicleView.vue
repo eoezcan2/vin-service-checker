@@ -1,10 +1,4 @@
 <script setup>
-import {validateLogin} from "@/api";
-import {onBeforeMount} from "vue";
-
-onBeforeMount(() => {
-  validateLogin()
-})
 </script>
 
 <template>
