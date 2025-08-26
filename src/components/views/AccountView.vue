@@ -1,12 +1,7 @@
 <script setup>
-import {validateLogin} from '@/api';
-import {onBeforeMount} from 'vue';
 import MaintenanceEditComponent from '../maintenance-edit-component.vue';
 import AddVehicleComponent from "@/components/add-vehicle-component.vue";
 
-onBeforeMount(() => {
-    validateLogin()
-})
 </script>
 
 <template>
