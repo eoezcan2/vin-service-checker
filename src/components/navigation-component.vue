@@ -22,7 +22,7 @@ import {isTokenPresent, logout} from '@/api';
               <router-link class="me-3" to="/account" >
                 <img src="/avatar.svg" alt="avatar" width="20" height="20">
               </router-link>
-              <a class="btn btn-dark text-light" href="#" @click="logout">Ausloggen</a>
+              <a class="btn btn-danger text-light" href="#" @click="logout">Ausloggen</a>
             </span>
           </span>
         </div>
