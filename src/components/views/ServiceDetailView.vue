@@ -12,6 +12,8 @@ const vin = ref(route.params.vin)
 <template>
     <div>
         <VehiclecardComponent :vin="vin" />
-        <MaintenanceComponent :vin="vin" />
+        <div class="d-flex justify-content-center align-items-center">
+            <MaintenanceComponent :vin="vin" class="w-75" />
+        </div>
     </div>
 </template>

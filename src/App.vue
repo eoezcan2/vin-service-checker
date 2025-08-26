@@ -1,6 +1,7 @@
 <script>
 import { RouterView } from 'vue-router'
 import NavigationComponent from './components/navigation-component.vue';
+import FooterComponent from './components/footer-component.vue';
 // import HeaderComponent from './components/header-component.vue';
 
   export default {
@@ -8,19 +9,23 @@ import NavigationComponent from './components/navigation-component.vue';
     components: {
       RouterView,
       NavigationComponent,
+      FooterComponent,
       // HeaderComponent
     }
   }
 </script>
 
 <template>
-  <main>
+  <div class="app-container">
     <NavigationComponent />
     <!--<HeaderComponent />-->
-    <div class="mt-custom">
-      <router-view />
-    </div>
-  </main>
+    <main class="main-content">
+      <div class="mt-custom">
+        <router-view />
+      </div>
+    </main>
+    <FooterComponent />
+  </div>
 </template>
 
 <style>
@@ -28,10 +33,26 @@ import NavigationComponent from './components/navigation-component.vue';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .mt-custom {
   margin-top: 100px;
+  flex: 1;
 }
 
 /*input[type="text"], input[type="password"] {

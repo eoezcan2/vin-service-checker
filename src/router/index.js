@@ -4,7 +4,7 @@ import HomeView from './../components/views/HomeView.vue'
 import ServiceDetailView from './../components/views/ServiceDetailView.vue'
 import AboutView from '@/components/views/AboutView.vue'
 import LoginView from '@/components/views/LoginView.vue'
-import AccountView from '@/components/views/AccountView.vue'
+import AccountView from '@/components/views/VehiclesView.vue'
 import AddVehicleView from "@/components/views/AddVehicleView.vue"
 import { isTokenPresent } from '@/api'
 
