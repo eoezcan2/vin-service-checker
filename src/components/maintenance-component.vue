@@ -69,14 +69,17 @@ function addMaintenance() {
 }
 
 function removeMaintenance(id) {
-  console.log(id)
-  safeRequest(`api/maintenance/${id}`, 'DELETE', {})
-    .then(response => {
-        console.log(response)
-        getMaintenances()
-    }).catch(error => {
-        console.log(error)
-    })
+  // Show confirmation dialog
+  if (confirm('Sind Sie sicher, dass Sie diesen Wartungseintrag löschen möchten?')) {
+    console.log(id)
+    safeRequest(`api/maintenance/${id}`, 'DELETE', {})
+      .then(response => {
+          console.log(response)
+          getMaintenances()
+      }).catch(error => {
+          console.log(error)
+      })
+  }
 }
 
 function convertDate(date) {

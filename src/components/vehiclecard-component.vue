@@ -88,7 +88,7 @@ function getVehicleTypeColor() {
             </div>
 
             <!-- Card Footer -->
-            <div class="vehicle-footer">
+            <!-- <div class="vehicle-footer">
                 <div class="vehicle-actions">
                     <button class="action-btn primary-btn" title="Wartung anzeigen">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -104,7 +104,7 @@ function getVehicleTypeColor() {
                         Details
                     </button>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
 

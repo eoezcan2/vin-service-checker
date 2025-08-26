@@ -5,7 +5,7 @@
 <template>
     <!-- changed: add center-viewport to vertically center header and searchbar -->
     <div class="center-viewport text-center">
-        <h2><span class="typing-header">Finde das Servicebuch deines Fahrzeuges.</span></h2>
+        <h2><span class="typing-header"><img src="/coolcar.png" alt="CoolCar" width="50" height="50" class="me-2"/>Finde das Servicebuch deines Fahrzeuges.</span></h2>
         <VinSearch class="pt-3"/>
     </div>
 </template>

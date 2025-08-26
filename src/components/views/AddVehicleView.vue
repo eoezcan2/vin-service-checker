@@ -9,23 +9,19 @@ const router = useRouter();
 const formData = reactive({
     name: '',
     vin: '',
-    type: '',
-    year: '',
-    mileage: '',
-    description: ''
+    type: ''
 });
 
 // Form validation
 const errors = reactive({
     name: '',
     vin: '',
-    type: '',
-    year: '',
-    mileage: ''
+    type: ''
 });
 
 const isLoading = ref(false);
 const isSubmitted = ref(false);
+const submitError = ref('');
 
 // Vehicle types
 const vehicleTypes = [
@@ -69,39 +65,14 @@ function validateType() {
     return true;
 }
 
-function validateYear() {
-    if (formData.year) {
-        const year = parseInt(formData.year);
-        const currentYear = new Date().getFullYear();
-        if (year < 1900 || year > currentYear + 1) {
-            errors.year = `Jahr muss zwischen 1900 und ${currentYear + 1} liegen`;
-            return false;
-        }
-    }
-    errors.year = '';
-    return true;
-}
 
-function validateMileage() {
-    if (formData.mileage) {
-        const mileage = parseInt(formData.mileage);
-        if (mileage < 0 || mileage > 999999) {
-            errors.mileage = 'Kilometerstand muss zwischen 0 und 999.999 liegen';
-            return false;
-        }
-    }
-    errors.mileage = '';
-    return true;
-}
 
 function validateForm() {
     const isNameValid = validateName();
     const isVinValid = validateVin();
     const isTypeValid = validateType();
-    const isYearValid = validateYear();
-    const isMileageValid = validateMileage();
     
-    return isNameValid && isVinValid && isTypeValid && isYearValid && isMileageValid;
+    return isNameValid && isVinValid && isTypeValid;
 }
 
 // Form submission
@@ -110,29 +81,39 @@ async function submitForm() {
         return;
     }
 
+    // Clear any previous errors
+    submitError.value = '';
+    
+    // Scroll to top when form is submitted
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     isLoading.value = true;
     
     try {
-        const response = await safeRequest('api/vin', 'POST', {
-            name: formData.name.trim(),
+        const response = await safeRequest('vehicle/add', 'POST', {
             vin: formData.vin.trim().toUpperCase(),
-            type: formData.type,
-            year: formData.year ? parseInt(formData.year) : null,
-            mileage: formData.mileage ? parseInt(formData.mileage) : null,
-            description: formData.description.trim()
+            name: formData.name.trim(),
+            type: formData.type
         });
 
-        console.log('Vehicle added successfully:', response);
-        isSubmitted.value = true;
+        console.log('Vehicle:', response);
         
-        // Redirect to home page after successful submission
-        setTimeout(() => {
-            router.push('/');
-        }, 2000);
+        // Check if the request was successful
+        if (response.status === 200 || response.status === 201) {
+            isSubmitted.value = true;
+            
+            // Redirect to vehicles page after successful submission
+            setTimeout(() => {
+                router.push('/account');
+            }, 2000);
+        } else {
+            // Handle error response
+            submitError.value = response.data?.message || 'Fehler beim Hinzufügen des Fahrzeugs. Bitte versuchen Sie es erneut.';
+        }
         
     } catch (error) {
         console.error('Error adding vehicle:', error);
-        // Handle specific errors here if needed
+        submitError.value = 'Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.';
     } finally {
         isLoading.value = false;
     }
@@ -147,6 +128,10 @@ function resetForm() {
     });
     isSubmitted.value = false;
 }
+
+function goBack() {
+    router.go(-1);
+}
 </script>
 
 <template>
@@ -154,6 +139,14 @@ function resetForm() {
         <!-- Page Header -->
         <div class="page-header">
             <div class="header-content">
+                <div class="header-top">
+                    <button class="back-btn" @click="goBack" title="Zurück">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                        Zurück
+                    </button>
+                </div>
                 <h1 class="page-title">Fahrzeug hinzufügen</h1>
                 <p class="page-subtitle">Fügen Sie ein neues Fahrzeug zu Ihrer Wartungsverwaltung hinzu</p>
             </div>
@@ -168,7 +161,15 @@ function resetForm() {
         <div v-if="isSubmitted" class="success-message">
             <div class="success-icon">✅</div>
             <h3>Fahrzeug erfolgreich hinzugefügt!</h3>
-            <p>Sie werden zur Startseite weitergeleitet...</p>
+            <p>Sie werden zur Fahrzeugliste weitergeleitet...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div v-if="submitError" class="error-message-container">
+            <div class="error-icon">❌</div>
+            <h3>Fehler beim Hinzufügen des Fahrzeugs</h3>
+            <p>{{ submitError }}</p>
+            <button class="btn btn-secondary" @click="submitError = ''">Schließen</button>
         </div>
 
         <!-- Add Vehicle Form -->
@@ -233,61 +234,7 @@ function resetForm() {
                     <span v-if="errors.type" class="error-message">{{ errors.type }}</span>
                 </div>
 
-                <!-- Year and Mileage Row -->
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="vehicleYear" class="form-label">
-                            <span class="label-icon">📅</span>
-                            Baujahr
-                        </label>
-                        <input
-                            id="vehicleYear"
-                            v-model="formData.year"
-                            type="number"
-                            class="form-input"
-                            :class="{ 'error': errors.year }"
-                            placeholder="z.B. 2020"
-                            min="1900"
-                            :max="new Date().getFullYear() + 1"
-                            @blur="validateYear"
-                        >
-                        <span v-if="errors.year" class="error-message">{{ errors.year }}</span>
-                    </div>
 
-                    <div class="form-group">
-                        <label for="vehicleMileage" class="form-label">
-                            <span class="label-icon">🛣️</span>
-                            Kilometerstand
-                        </label>
-                        <input
-                            id="vehicleMileage"
-                            v-model="formData.mileage"
-                            type="number"
-                            class="form-input"
-                            :class="{ 'error': errors.mileage }"
-                            placeholder="z.B. 50000"
-                            min="0"
-                            max="999999"
-                            @blur="validateMileage"
-                        >
-                        <span v-if="errors.mileage" class="error-message">{{ errors.mileage }}</span>
-                    </div>
-                </div>
-
-                <!-- Description -->
-                <div class="form-group">
-                    <label for="vehicleDescription" class="form-label">
-                        <span class="label-icon">📝</span>
-                        Beschreibung (optional)
-                    </label>
-                    <textarea
-                        id="vehicleDescription"
-                        v-model="formData.description"
-                        class="form-textarea"
-                        placeholder="Zusätzliche Informationen über das Fahrzeug..."
-                        rows="3"
-                    ></textarea>
-                </div>
 
                 <!-- Form Actions -->
                 <div class="form-actions">
@@ -338,6 +285,33 @@ function resetForm() {
     flex: 1;
 }
 
+.header-top {
+    margin-bottom: 1rem;
+}
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: #ffffff;
+    color: #495057;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 .page-title {
     color: #212529;
     font-weight: 700;
@@ -384,6 +358,32 @@ function resetForm() {
 .success-message p {
     margin: 0;
     opacity: 0.8;
+}
+
+/* Error Message */
+.error-message-container {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    border-radius: 16px;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    margin-bottom: 2rem;
+}
+
+.error-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.error-message-container h3 {
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+}
+
+.error-message-container p {
+    margin: 0 0 1.5rem 0;
+    opacity: 0.9;
 }
 
 /* Form Container */
