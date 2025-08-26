@@ -4,9 +4,6 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 function navigateToAddVehicle() {
-    // Scroll to top before navigating
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
     // Navigate to add vehicle page
     router.push('/addvehicle');
 }

@@ -84,13 +84,10 @@ async function submitForm() {
     // Clear any previous errors
     submitError.value = '';
     
-    // Scroll to top when form is submitted
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
     isLoading.value = true;
     
     try {
-        const response = await safeRequest('vehicle/add', 'POST', {
+        const response = await safeRequest('api/vehicle/add', 'POST', {
             vin: formData.vin.trim().toUpperCase(),
             name: formData.name.trim(),
             type: formData.type

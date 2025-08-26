@@ -32,4 +32,9 @@ router.beforeEach((to, from, next) => {
   }
 })
 
+router.afterEach(() => {
+  // Scroll to top on every route change
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
+
 export default router

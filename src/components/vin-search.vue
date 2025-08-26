@@ -24,7 +24,7 @@
 </script>
 
 <template>
-    <div class="container-fluid d-flex justify-content-center flex-column w-25">
+    <div class="container-fluid d-flex justify-content-center flex-column" style="max-width: 50%;">
         <input class="form-control text-center" type="text" v-model="inputVin" placeholder="FIN" v-on:keyup.enter="submitSearch">
         <button
           type="button"

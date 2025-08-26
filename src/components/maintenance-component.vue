@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios';
-import { ref, defineProps, onMounted } from 'vue';
+import { ref, defineProps, onMounted, watch } from 'vue';
 import { safeRequest } from '@/api';
 
 const categories = [
@@ -30,6 +30,10 @@ let newCategory = ref('')
 let newDescription = ref('')
 let newMileage = ref('')
 let newCost = ref('')
+
+// Custom confirmation dialog
+let showConfirmDialog = ref(false)
+let itemToDelete = ref(null)
 
 function clearInputs() {
     newDate.value = ''
@@ -68,11 +72,15 @@ function addMaintenance() {
     clearInputs()
 }
 
-function removeMaintenance(id) {
-  // Show confirmation dialog
-  if (confirm('Sind Sie sicher, dass Sie diesen Wartungseintrag löschen möchten?')) {
-    console.log(id)
-    safeRequest(`api/maintenance/${id}`, 'DELETE', {})
+function showDeleteConfirmation(id) {
+  itemToDelete.value = id
+  showConfirmDialog.value = true
+}
+
+function confirmDelete() {
+  if (itemToDelete.value) {
+    console.log(itemToDelete.value)
+    safeRequest(`api/maintenance/${itemToDelete.value}`, 'DELETE', {})
       .then(response => {
           console.log(response)
           getMaintenances()
@@ -80,6 +88,12 @@ function removeMaintenance(id) {
           console.log(error)
       })
   }
+  closeConfirmDialog()
+}
+
+function closeConfirmDialog() {
+  showConfirmDialog.value = false
+  itemToDelete.value = null
 }
 
 function convertDate(date) {
@@ -152,6 +166,13 @@ function getCategoryDisplayName(category) {
 onMounted(() => {
     getMaintenances()
 })
+
+// Watch for vin prop changes to refetch data
+watch(() => props.vin, (newVin) => {
+    if (newVin) {
+        getMaintenances()
+    }
+})
 </script>
 
 <template>
@@ -188,7 +209,7 @@ onMounted(() => {
                         <td class="mileage-cell">{{ item.mileage }} km</td>
                         <td class="cost-cell">{{ item.cost }}€</td>
                         <td v-if="props.edit" class="action-cell">
-                            <button class="delete-btn" @click="removeMaintenance(item.id)" title="Löschen">
+                            <button class="delete-btn" @click="showDeleteConfirmation(item.id)" title="Löschen">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                                 </svg>
@@ -235,6 +256,36 @@ onMounted(() => {
         <div v-if="data.length === 0 && !props.edit" class="empty-table">
             <div class="empty-icon">🔧</div>
             <p class="empty-text">Noch keine Wartungseinträge vorhanden</p>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Dialog -->
+    <div v-if="showConfirmDialog" class="modal-overlay" @click="closeConfirmDialog">
+        <div class="modal-content" @click.stop>
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </div>
+                <h3 class="modal-title">Wartungseintrag löschen</h3>
+            </div>
+            <div class="modal-body">
+                <p class="modal-message">
+                    Sind Sie sicher, dass Sie diesen Wartungseintrag löschen möchten? 
+                    Diese Aktion kann nicht rückgängig gemacht werden.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" @click="closeConfirmDialog">
+                    Abbrechen
+                </button>
+                <button class="modal-btn modal-btn-delete" @click="confirmDelete">
+                    Löschen
+                </button>
+            </div>
         </div>
     </div>
 </template>
@@ -558,6 +609,139 @@ onMounted(() => {
     
     .description-cell {
         max-width: 80px;
+    }
+}
+
+/* Custom Modal Dialog */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    max-width: 400px;
+    width: 90%;
+    margin: 1rem;
+    overflow: hidden;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header {
+    padding: 1.5rem 1.5rem 0 1.5rem;
+    text-align: center;
+}
+
+.modal-icon {
+    color: #dc3545;
+    margin-bottom: 1rem;
+}
+
+.modal-title {
+    color: #212529;
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.modal-body {
+    padding: 1rem 1.5rem;
+}
+
+.modal-message {
+    color: #6c757d;
+    line-height: 1.6;
+    margin: 0;
+    text-align: center;
+}
+
+.modal-footer {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.modal-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 100px;
+}
+
+.modal-btn-cancel {
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+}
+
+.modal-btn-cancel:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.modal-btn-delete {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.modal-btn-delete:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
+}
+
+.modal-btn-delete:active {
+    transform: translateY(0);
+}
+
+/* Responsive Modal */
+@media (max-width: 480px) {
+    .modal-content {
+        margin: 0.5rem;
+        width: calc(100% - 1rem);
+    }
+    
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .modal-btn {
+        width: 100%;
     }
 }
 </style>
