@@ -38,7 +38,8 @@
         isLoginLoading.value = true
         
         try {
-            const response = await axios.post('http://localhost:8080/user/login', {
+            const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:8080';
+            const response = await axios.post(`${API_BASE_URL}/user/login`, {
                 username: username.value.trim(),
                 password: password.value
             })
@@ -99,7 +100,8 @@
         isRegisterLoading.value = true
         
         try {
-            const response = await axios.post('http://localhost:8080/user/register', {
+            const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:8080';
+            const response = await axios.post(`${API_BASE_URL}/user/register`, {
                 username: registerUsername.value.trim(),
                 email: registerEmail.value.trim(),
                 password: registerPassword.value

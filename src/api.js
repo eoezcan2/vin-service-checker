@@ -1,5 +1,8 @@
 import axios from "axios";
 
+// API base URL - use environment variable or fallback to localhost
+const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:8080';
+
 const isTokenPresent = !!localStorage.getItem('token')
 
 function logout() {
@@ -11,7 +14,7 @@ async function safeRequest(url, method, data) {
   await verify();
   return axios({
     method,
-    url: `http://localhost:8080/${url}`,
+    url: `${API_BASE_URL}/${url}`,
     data,
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -29,7 +32,7 @@ async function safeRequest(url, method, data) {
 
 async function verify() {
   if (!localStorage.getItem('token')) return;
-  axios.get('http://localhost:8080/verify', {
+  axios.get(`${API_BASE_URL}/verify`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem('token')}`
     }
