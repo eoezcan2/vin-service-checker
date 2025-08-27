@@ -46,16 +46,14 @@ function clearInputs() {
 function getMaintenances() {
     axios.get(`http://localhost:8080/api/maintenance/${props.vin}`)
         .then(response => {
-            console.log(response)
             data.value = response.data
         })
-        .catch(error => {
-            console.log(error)
+        .catch(() => {
+            // Handle error silently or show user-friendly message
         })
 }
 
 function addMaintenance() {
-    console.log(newDate.value, newCategory.value)
     safeRequest('api/maintenance', 'POST', {
         vin: props.vin,
         date: newDate.value,
@@ -63,11 +61,10 @@ function addMaintenance() {
         description: newDescription.value,
         mileage: newMileage.value,
         cost: newCost.value
-    }).then(response => {
-        console.log(response)
+    }).then(() => {
         getMaintenances()
-    }).catch(error => {
-        console.log(error)
+    }).catch(() => {
+        // Handle error silently or show user-friendly message
     })
     clearInputs()
 }
@@ -79,13 +76,11 @@ function showDeleteConfirmation(id) {
 
 function confirmDelete() {
   if (itemToDelete.value) {
-    console.log(itemToDelete.value)
     safeRequest(`api/maintenance/${itemToDelete.value}`, 'DELETE', {})
-      .then(response => {
-          console.log(response)
+      .then(() => {
           getMaintenances()
-      }).catch(error => {
-          console.log(error)
+      }).catch(() => {
+          // Handle error silently or show user-friendly message
       })
   }
   closeConfirmDialog()

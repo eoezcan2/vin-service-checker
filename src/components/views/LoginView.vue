@@ -11,6 +11,12 @@
     const registerEmail = ref('')
     const registerPassword = ref('')
 
+    // Error and loading states
+    const loginError = ref('')
+    const registerError = ref('')
+    const isLoginLoading = ref(false)
+    const isRegisterLoading = ref(false)
+
     const router = useRouter()
 
     onMounted(() => {
@@ -19,41 +25,115 @@
         }
     })
     
-    const login = () => {
-        axios.post('http://localhost:8080/user/login', {
-            username: username.value,
-            password: password.value
-        }).then((response) => {
-            console.log(response)
-            if (response.status === 200) {
-                console.log(response.data.token)
+    const login = async () => {
+        // Clear previous errors
+        loginError.value = ''
+        
+        // Validate inputs
+        if (!username.value.trim() || !password.value.trim()) {
+            loginError.value = 'Bitte füllen Sie alle Felder aus.'
+            return
+        }
+
+        isLoginLoading.value = true
+        
+        try {
+            const response = await axios.post('http://localhost:8080/user/login', {
+                username: username.value.trim(),
+                password: password.value
+            })
+            
+            if (response.data && response.data.token) {
                 localStorage.setItem('token', response.data.token)
                 router.push('/')
                 location.reload()
+            } else {
+                loginError.value = 'Ungültige Anmeldedaten. Bitte überprüfen Sie Benutzername und Passwort.'
             }
-        }).catch((error) => {
-            console.log(error)
-            alert('Login failed')
-        })
+        } catch (error) {
+            if (error.response) {
+                // Server responded with error status
+                if (error.response.status === 401) {
+                    loginError.value = 'Ungültige Anmeldedaten. Bitte überprüfen Sie Benutzername und Passwort.'
+                } else if (error.response.status === 404) {
+                    loginError.value = 'Benutzer nicht gefunden. Bitte überprüfen Sie Ihren Benutzernamen.'
+                } else if (error.response.status === 500) {
+                    loginError.value = 'Serverfehler. Bitte versuchen Sie es später erneut.'
+                } else {
+                    loginError.value = 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.'
+                }
+            } else if (error.request) {
+                // Network error
+                loginError.value = 'Verbindungsfehler. Bitte überprüfen Sie Ihre Internetverbindung.'
+            } else {
+                // Other error
+                loginError.value = 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.'
+            }
+        } finally {
+            isLoginLoading.value = false
+        }
     }
 
-    const register = () => {
-      axios.post('http://localhost:8080/user/register', {
-          username: registerUsername.value,
-          email: registerEmail.value,
-          password: registerPassword.value
-      }).then((response) => {
-          console.log(response)
-          if (response.status === 200) {
-              console.log(response.data.token)
-              localStorage.setItem('token', response.data.token)
-              router.push('/')
-              location.reload()
-          }
-      }).catch((error) => {
-          console.log(error)
-          alert('Register failed')
-      })
+    const register = async () => {
+        // Clear previous errors
+        registerError.value = ''
+        
+        // Validate inputs
+        if (!registerUsername.value.trim() || !registerEmail.value.trim() || !registerPassword.value.trim()) {
+            registerError.value = 'Bitte füllen Sie alle Felder aus.'
+            return
+        }
+
+        if (registerPassword.value.length < 6) {
+            registerError.value = 'Das Passwort muss mindestens 6 Zeichen lang sein.'
+            return
+        }
+
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(registerEmail.value)) {
+            registerError.value = 'Bitte geben Sie eine gültige E-Mail-Adresse ein.'
+            return
+        }
+
+        isRegisterLoading.value = true
+        
+        try {
+            const response = await axios.post('http://localhost:8080/user/register', {
+                username: registerUsername.value.trim(),
+                email: registerEmail.value.trim(),
+                password: registerPassword.value
+            })
+            
+            if (response.data && response.data.token) {
+                localStorage.setItem('token', response.data.token)
+                router.push('/')
+                location.reload()
+            } else {
+                registerError.value = 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.'
+            }
+        } catch (error) {
+            if (error.response) {
+                // Server responded with error status
+                if (error.response.status === 409) {
+                    registerError.value = 'Benutzername oder E-Mail-Adresse bereits vorhanden. Bitte wählen Sie andere Daten.'
+                } else if (error.response.status === 400) {
+                    registerError.value = 'Ungültige Eingabedaten. Bitte überprüfen Sie Ihre Angaben.'
+                } else if (error.response.status === 500) {
+                    registerError.value = 'Serverfehler. Bitte versuchen Sie es später erneut.'
+                } else {
+                    registerError.value = 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.'
+                }
+            } else if (error.request) {
+                // Network error
+                registerError.value = 'Verbindungsfehler. Bitte überprüfen Sie Ihre Internetverbindung.'
+            } else {
+                // Other error
+                registerError.value = 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.'
+            }
+        } finally {
+            isRegisterLoading.value = false
+        }
     }
 
     const goBack = () => {
@@ -77,15 +157,53 @@
         <div class="form-container">
             <div class="login-form">
                 <h2 class="form-title">Anmelden</h2>
+                
+                <!-- Login Error Message -->
+                <div v-if="loginError" class="error-message">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    {{ loginError }}
+                </div>
+                
                 <div class="form-group">
                     <label for="usernameInput" class="form-label">Benutzername</label>
-                    <input type="text" class="form-control" id="usernameInput" v-model="username" v-on:keyup.enter="login">
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="usernameInput" 
+                        v-model="username" 
+                        v-on:keyup.enter="login"
+                        :disabled="isLoginLoading"
+                        :class="{ 'error': loginError }"
+                    >
                 </div>
                 <div class="form-group">
                     <label for="passwordInput" class="form-label">Passwort</label>
-                    <input type="password" class="form-control" id="passwordInput" v-model="password" v-on:keyup.enter="login">
+                    <input 
+                        type="password" 
+                        class="form-control" 
+                        id="passwordInput" 
+                        v-model="password" 
+                        v-on:keyup.enter="login"
+                        :disabled="isLoginLoading"
+                        :class="{ 'error': loginError }"
+                    >
                 </div>
-                <button class="btn btn-primary login-btn" @click="login">Anmelden</button>
+                <button 
+                    class="btn btn-primary login-btn" 
+                    @click="login"
+                    :disabled="isLoginLoading"
+                >
+                    <span v-if="isLoginLoading" class="loading-spinner">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                        </svg>
+                    </span>
+                    {{ isLoginLoading ? 'Anmelden...' : 'Anmelden' }}
+                </button>
             </div>
         </div>
 
@@ -94,19 +212,65 @@
             <p class="register-title">Noch kein Konto?</p>
             <div class="register-form">
                 <h3 class="form-title">Registrieren</h3>
+                
+                <!-- Register Error Message -->
+                <div v-if="registerError" class="error-message">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    {{ registerError }}
+                </div>
+                
                 <div class="form-group">
                     <label for="registerEmail" class="form-label">E-Mail</label>
-                    <input type="email" class="form-control" id="registerEmail" v-model="registerEmail" v-on:keyup.enter="register">
+                    <input 
+                        type="email" 
+                        class="form-control" 
+                        id="registerEmail" 
+                        v-model="registerEmail" 
+                        v-on:keyup.enter="register"
+                        :disabled="isRegisterLoading"
+                        :class="{ 'error': registerError }"
+                    >
                 </div>
                 <div class="form-group">
                     <label for="registerUsername" class="form-label">Benutzername</label>
-                    <input type="text" class="form-control" id="registerUsername" v-model="registerUsername" v-on:keyup.enter="register">
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="registerUsername" 
+                        v-model="registerUsername" 
+                        v-on:keyup.enter="register"
+                        :disabled="isRegisterLoading"
+                        :class="{ 'error': registerError }"
+                    >
                 </div>
                 <div class="form-group">
                     <label for="registerPassword" class="form-label">Passwort</label>
-                    <input type="password" class="form-control" id="registerPassword" v-model="registerPassword" v-on:keyup.enter="register">
+                    <input 
+                        type="password" 
+                        class="form-control" 
+                        id="registerPassword" 
+                        v-model="registerPassword" 
+                        v-on:keyup.enter="register"
+                        :disabled="isRegisterLoading"
+                        :class="{ 'error': registerError }"
+                    >
                 </div>
-                <button class="btn btn-primary register-btn" @click="register">Registrieren</button>
+                <button 
+                    class="btn btn-primary register-btn" 
+                    @click="register"
+                    :disabled="isRegisterLoading"
+                >
+                    <span v-if="isRegisterLoading" class="loading-spinner">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                        </svg>
+                    </span>
+                    {{ isRegisterLoading ? 'Registrieren...' : 'Registrieren' }}
+                </button>
             </div>
         </div>
     </div>
@@ -202,6 +366,49 @@
     box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
 }
 
+.form-control.error {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.form-control:disabled {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Error Message Styling */
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #fff5f5, #fed7d7);
+    border: 1px solid #feb2b2;
+    border-radius: 8px;
+    color: #c53030;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    animation: slideIn 0.3s ease;
+}
+
+.error-message svg {
+    flex-shrink: 0;
+    color: #e53e3e;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .login-btn, .register-btn {
     width: 100%;
     padding: 0.75rem 2rem;
@@ -219,6 +426,31 @@
     background: linear-gradient(135deg, #0b5ed7, #0a58ca);
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3);
+}
+
+.login-btn:disabled, .register-btn:disabled {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.login-btn:disabled:hover, .register-btn:disabled:hover {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    transform: none;
+    box-shadow: none;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .register-section {

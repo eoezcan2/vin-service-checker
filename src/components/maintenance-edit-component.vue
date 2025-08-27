@@ -7,27 +7,38 @@ let data = ref([])
 let loaded = ref(false)
 let selectedVehicle = ref(null)
 let showVehicleSelector = ref(false)
+let vehicleDetails = ref({}) // Store full vehicle details by VIN
 
 onMounted( () => {
   safeRequest('api/vin/list', 'GET', {})
       .then(response => {
-        console.log(response)
         data.value = response.data
-        loaded.value = true
-        // Auto-select first vehicle if available
-        if (data.value.length > 0) {
-          selectedVehicle.value = data.value[0]
-        }
-      }).catch(error => {
-        console.log(error)
+        // Fetch vehicle details for each VIN
+        fetchVehicleDetails()
+      }).catch(() => {
+        // Handle error silently or show user-friendly message
       })
 });
 
-// Computed properties
-const selectedVehicleData = computed(() => {
-  return selectedVehicle.value
-})
+// Fetch vehicle details for each VIN
+async function fetchVehicleDetails() {
+  try {
+    for (const vin of data.value) {
+      const response = await safeRequest(`api/vin/${vin}/data`, 'GET', {})
+      vehicleDetails.value[vin] = response.data
+    }
+    loaded.value = true
+    // Auto-select first vehicle if available
+    if (data.value.length > 0) {
+      selectedVehicle.value = data.value[0]
+    }
+  } catch (error) {
+    // Handle error silently or show user-friendly message
+    loaded.value = true
+  }
+}
 
+// Computed properties
 const hasVehicles = computed(() => {
   return data.value.length > 0
 })
@@ -98,8 +109,8 @@ function toggleVehicleSelector() {
                 </svg>
               </div>
               <div class="vehicle-details">
-                <h4 class="vehicle-name">{{ selectedVehicleData.name }}</h4>
-                <p class="vehicle-vin">{{ selectedVehicleData }}</p>
+                <h4 class="vehicle-name">{{ vehicleDetails[selectedVehicle]?.name || selectedVehicle }}</h4>
+                <p class="vehicle-vin">{{ selectedVehicle }}</p>
               </div>
             </div>
             <div class="selector-arrow">
@@ -126,7 +137,7 @@ function toggleVehicleSelector() {
                 </svg>
               </div>
               <div class="option-details">
-                <span class="option-name">{{ vehicle }}</span>
+                <span class="option-name">{{ vehicleDetails[vehicle]?.name || vehicle }}</span>
                 <span class="option-vin">{{ vehicle }}</span>
               </div>
               <div v-if="vehicle === selectedVehicle" class="option-check">
