@@ -1,53 +1,83 @@
 import axios from "axios";
+import { ref, computed } from 'vue';
 
 // API base URL - use environment variable or fallback to localhost
 const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:8080';
 
-const isTokenPresent = !!localStorage.getItem('token')
+// Reactive token state
+const token = ref(localStorage.getItem('token') || null);
+
+// Computed property for token presence
+const isTokenPresent = computed(() => !!token.value);
+
+// Function to set token
+function setToken(newToken) {
+  token.value = newToken;
+  if (newToken) {
+    localStorage.setItem('token', newToken);
+  } else {
+    localStorage.removeItem('token');
+  }
+}
 
 function logout() {
-  localStorage.removeItem('token');
+  setToken(null);
   location.reload();
 }
 
 async function safeRequest(url, method, data) {
-  await verify();
-  return axios({
-    method,
-    url: `${API_BASE_URL}/${url}`,
-    data,
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`
-    }
-  }).then(response => {
-    console.log(response)
+  try {
+    await verify();
+    const response = await axios({
+      method,
+      url: `${API_BASE_URL}/${url}`,
+      data,
+      headers: {
+        'Authorization': `Bearer ${token.value}`
+      }
+    });
     return response;
-  }).catch(error => {
-    if (error.response.status === 401) {
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
       logout();
     }
-    return error.response;
-  });
+    throw error;
+  }
 }
 
 async function verify() {
-  if (!localStorage.getItem('token')) return;
-  axios.get(`${API_BASE_URL}/verify`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`
+  if (!token.value) {
+    throw new Error('No token available');
+  }
+  
+  try {
+    const response = await axios.get(`${API_BASE_URL}/verify`, {
+      headers: {
+        Authorization: `Bearer ${token.value}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      setToken(null);
+      throw new Error('Token expired or invalid');
     }
-  }).then(response => {
-    console.log(response)
-  }).catch(error => {
-    console.log(error)
-    if (error) localStorage.removeItem('token');
-  });
+    throw error;
+  }
+}
+
+// Function to login and set token
+function login(newToken) {
+  setToken(newToken);
 }
 
 export {
   isTokenPresent,
+  token,
+  login,
   logout,
   verify,
-  safeRequest
+  safeRequest,
+  setToken
 }
 

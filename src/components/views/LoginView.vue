@@ -1,5 +1,5 @@
 <script setup>
-    import { isTokenPresent } from '@/api';
+    import { isTokenPresent, login as loginUser } from '@/api';
     import axios from 'axios';
     import { onMounted, ref } from 'vue'
     import { useRouter } from 'vue-router'
@@ -20,7 +20,7 @@
     const router = useRouter()
 
     onMounted(() => {
-        if (isTokenPresent) {
+        if (isTokenPresent.value) {
             router.push('/')
         }
     })
@@ -45,9 +45,8 @@
             })
             
             if (response.data && response.data.token) {
-                localStorage.setItem('token', response.data.token)
+                loginUser(response.data.token)
                 router.push('/')
-                location.reload()
             } else {
                 loginError.value = 'Ungültige Anmeldedaten. Bitte überprüfen Sie Benutzername und Passwort.'
             }
@@ -108,9 +107,8 @@
             })
             
             if (response.data && response.data.token) {
-                localStorage.setItem('token', response.data.token)
+                loginUser(response.data.token)
                 router.push('/')
-                location.reload()
             } else {
                 registerError.value = 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.'
             }

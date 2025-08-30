@@ -23,7 +23,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const loggedIn = isTokenPresent
+  const loggedIn = isTokenPresent.value
 
   if (to.meta.requiresAuth && !loggedIn) {
       next('/login')
