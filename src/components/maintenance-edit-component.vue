@@ -8,6 +8,7 @@ let loaded = ref(false)
 let selectedVehicle = ref(null)
 let showVehicleSelector = ref(false)
 let vehicleDetails = ref({}) // Store full vehicle details by VIN
+let allMaintenanceData = ref({}) // Store maintenance data for all vehicles
 
 onMounted( () => {
   safeRequest('api/vin/list', 'GET', {})
@@ -15,6 +16,8 @@ onMounted( () => {
         data.value = response.data
         // Fetch vehicle details for each VIN
         fetchVehicleDetails()
+        // Fetch maintenance data for all vehicles
+        fetchAllMaintenanceData()
       }).catch(() => {
         // Handle error silently or show user-friendly message
       })
@@ -38,6 +41,18 @@ async function fetchVehicleDetails() {
   }
 }
 
+// Fetch maintenance data for all vehicles
+async function fetchAllMaintenanceData() {
+  try {
+    for (const vin of data.value) {
+      const response = await safeRequest(`api/maintenance/${vin}`, 'GET', {})
+      allMaintenanceData.value[vin] = response.data
+    }
+  } catch (error) {
+    // Handle error silently
+  }
+}
+
 // Computed properties
 const hasVehicles = computed(() => {
   return data.value.length > 0
@@ -46,6 +61,48 @@ const hasVehicles = computed(() => {
 const vehicleCount = computed(() => {
   return data.value.length
 })
+
+// Cost calculation computed properties
+const totalCostAcrossAllVehicles = computed(() => {
+  return Object.values(allMaintenanceData.value).reduce((total, maintenanceList) => {
+    return total + maintenanceList.reduce((sum, item) => sum + (item.cost || 0), 0)
+  }, 0)
+})
+
+const averageCostPerVehicle = computed(() => {
+  if (data.value.length === 0) return 0
+  return totalCostAcrossAllVehicles.value / data.value.length
+})
+
+const totalMaintenanceCount = computed(() => {
+  return Object.values(allMaintenanceData.value).reduce((total, maintenanceList) => {
+    return total + maintenanceList.length
+  }, 0)
+})
+
+const costByVehicle = computed(() => {
+  const vehicleCosts = {}
+  data.value.forEach(vin => {
+    const maintenanceList = allMaintenanceData.value[vin] || []
+    vehicleCosts[vin] = maintenanceList.reduce((sum, item) => sum + (item.cost || 0), 0)
+  })
+  return vehicleCosts
+})
+
+const mostExpensiveVehicle = computed(() => {
+  if (Object.keys(costByVehicle.value).length === 0) return null
+  
+  return Object.entries(costByVehicle.value).reduce((max, [vin, cost]) => {
+    return cost > max.cost ? { vin, cost } : max
+  }, { vin: '', cost: 0 })
+})
+
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(amount)
+}
 
 // Methods
 function selectVehicle(vehicle) {
@@ -64,8 +121,6 @@ watch(selectedVehicle, (newVehicle) => {
 function toggleVehicleSelector() {
   showVehicleSelector.value = !showVehicleSelector.value
 }
-
-
 </script>
 
 <template>
@@ -145,6 +200,57 @@ function toggleVehicleSelector() {
                   <path d="M20 6L9 17l-5-5"/>
                 </svg>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overall Cost Summary -->
+      <div v-if="hasVehicles && totalMaintenanceCount > 0" class="overall-cost-summary">
+        <div class="summary-header">
+          <h3 class="summary-title">Gesamtübersicht</h3>
+          <p class="summary-subtitle">Kostenübersicht über alle Fahrzeuge</p>
+        </div>
+        
+        <div class="summary-grid">
+          <div class="summary-card total-overview">
+            <div class="summary-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+                <path d="M12 6v2m0 8v2"/>
+              </svg>
+            </div>
+            <div class="summary-content">
+              <div class="summary-label">Gesamtkosten</div>
+              <div class="summary-value">{{ formatCurrency(totalCostAcrossAllVehicles) }}</div>
+              <div class="summary-subvalue">{{ totalMaintenanceCount }} Wartungen</div>
+            </div>
+          </div>
+          
+          <div class="summary-card average-overview">
+            <div class="summary-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+              </svg>
+            </div>
+            <div class="summary-content">
+              <div class="summary-label">Durchschnitt pro Fahrzeug</div>
+              <div class="summary-value">{{ formatCurrency(averageCostPerVehicle) }}</div>
+              <div class="summary-subvalue">{{ vehicleCount }} Fahrzeuge</div>
+            </div>
+          </div>
+          
+          <div v-if="mostExpensiveVehicle && mostExpensiveVehicle.vin" class="summary-card expensive-overview">
+            <div class="summary-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+            </div>
+            <div class="summary-content">
+              <div class="summary-label">Teuerstes Fahrzeug</div>
+              <div class="summary-value">{{ vehicleDetails[mostExpensiveVehicle.vin]?.name || mostExpensiveVehicle.vin }}</div>
+              <div class="summary-subvalue">{{ formatCurrency(mostExpensiveVehicle.cost) }}</div>
             </div>
           </div>
         </div>
@@ -482,6 +588,110 @@ function toggleVehicleSelector() {
   color: #ffffff;
 }
 
+/* Overall Cost Summary Styles */
+.overall-cost-summary {
+  margin: 2rem 1rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(13, 110, 253, 0.08);
+}
+
+.summary-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.summary-title {
+  color: #212529;
+  font-weight: 700;
+  font-size: 1.75rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.summary-subtitle {
+  color: #6c757d;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.75rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.summary-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.total-overview .summary-icon {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: #ffffff;
+}
+
+.average-overview .summary-icon {
+  background: linear-gradient(135deg, #17a2b8, #6f42c1);
+  color: #ffffff;
+}
+
+.expensive-overview .summary-icon {
+  background: linear-gradient(135deg, #ffc107, #fd7e14);
+  color: #ffffff;
+}
+
+.summary-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.summary-label {
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.summary-value {
+  color: #212529;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+}
+
+.summary-subvalue {
+  color: #6c757d;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .maintenance-edit-container {
@@ -523,6 +733,46 @@ function toggleVehicleSelector() {
   .maintenance-header,
   .maintenance-content {
     padding: 1rem;
+  }
+  
+  .overall-cost-summary {
+    margin: 1rem 0.5rem;
+    padding: 1.5rem;
+  }
+  
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .summary-card {
+    padding: 1.25rem;
+  }
+  
+  .summary-icon {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .summary-value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .summary-icon {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .summary-value {
+    font-size: 1.25rem;
   }
 }
 </style>

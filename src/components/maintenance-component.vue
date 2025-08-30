@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios';
-import { ref, defineProps, onMounted, watch } from 'vue';
+import { ref, defineProps, onMounted, watch, computed } from 'vue';
 import { safeRequest } from '@/api';
 
 const categories = [
@@ -20,7 +20,11 @@ const categories = [
 
 const props = defineProps({
     vin: String,
-    edit: Boolean
+    edit: Boolean,
+    showCostSummary: {
+        type: Boolean,
+        default: true
+    }
 })
 
 let data = ref([])
@@ -34,6 +38,36 @@ let newCost = ref('')
 // Custom confirmation dialog
 let showConfirmDialog = ref(false)
 let itemToDelete = ref(null)
+
+// Computed properties for cost calculations
+const totalCost = computed(() => {
+    return data.value.reduce((sum, item) => sum + (item.cost || 0), 0)
+})
+
+const averageCost = computed(() => {
+    if (data.value.length === 0) return 0
+    return totalCost.value / data.value.length
+})
+
+const costByCategory = computed(() => {
+    const categoryCosts = {}
+    data.value.forEach(item => {
+        const category = item.category
+        if (!categoryCosts[category]) {
+            categoryCosts[category] = 0
+        }
+        categoryCosts[category] += (item.cost || 0)
+    })
+    return categoryCosts
+})
+
+const mostExpensiveCategory = computed(() => {
+    if (Object.keys(costByCategory.value).length === 0) return null
+    
+    return Object.entries(costByCategory.value).reduce((max, [category, cost]) => {
+        return cost > max.cost ? { category, cost } : max
+    }, { category: '', cost: 0 })
+})
 
 function clearInputs() {
     newDate.value = ''
@@ -158,6 +192,13 @@ function getCategoryDisplayName(category) {
     }
 }
 
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('de-DE', {
+        style: 'currency',
+        currency: 'EUR'
+    }).format(amount)
+}
+
 onMounted(() => {
     getMaintenances()
 })
@@ -177,6 +218,50 @@ watch(() => props.vin, (newVin) => {
             <h4 class="table-title text-center">Wartungshistorie</h4>
             <p class="table-subtitle text-center" v-if="data.length > 0">{{ data.length }} Einträge gefunden</p>
             <p class="table-subtitle text-center" v-else>Keine Wartungseinträge vorhanden</p>
+        </div>
+
+        <!-- Cost Summary Section -->
+        <div v-if="data.length > 0 && props.showCostSummary" class="cost-summary">
+            <div class="cost-summary-grid">
+                <div class="cost-card total-cost">
+                    <div class="cost-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+                            <path d="M12 6v2m0 8v2"/>
+                        </svg>
+                    </div>
+                    <div class="cost-content">
+                        <div class="cost-label">Gesamtkosten</div>
+                        <div class="cost-value">{{ formatCurrency(totalCost) }}</div>
+                    </div>
+                </div>
+                
+                <div class="cost-card average-cost">
+                    <div class="cost-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                        </svg>
+                    </div>
+                    <div class="cost-content">
+                        <div class="cost-label">Durchschnitt</div>
+                        <div class="cost-value">{{ formatCurrency(averageCost) }}</div>
+                    </div>
+                </div>
+                
+                <div v-if="mostExpensiveCategory && mostExpensiveCategory.category" class="cost-card expensive-category">
+                    <div class="cost-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </div>
+                    <div class="cost-content">
+                        <div class="cost-label">Teuerste Kategorie</div>
+                        <div class="cost-value">{{ getCategoryDisplayName(mostExpensiveCategory.category) }}</div>
+                        <div class="cost-subvalue">{{ formatCurrency(mostExpensiveCategory.cost) }}</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Table -->
@@ -737,6 +822,135 @@ watch(() => props.vin, (newVin) => {
     
     .modal-btn {
         width: 100%;
+    }
+}
+
+/* Cost Summary Styles */
+.cost-summary {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.cost-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.cost-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.cost-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.cost-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.total-cost .cost-icon {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: #ffffff;
+}
+
+.average-cost .cost-icon {
+    background: linear-gradient(135deg, #17a2b8, #6f42c1);
+    color: #ffffff;
+}
+
+.expensive-category .cost-icon {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+    color: #ffffff;
+}
+
+.cost-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.cost-label {
+    color: #6c757d;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.cost-value {
+    color: #212529;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+}
+
+.cost-subvalue {
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Responsive Cost Summary */
+@media (max-width: 768px) {
+    .cost-summary {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .cost-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .cost-card {
+        padding: 1rem;
+    }
+    
+    .cost-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .cost-value {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .cost-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    
+    .cost-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .cost-value {
+        font-size: 1.1rem;
     }
 }
 </style>
