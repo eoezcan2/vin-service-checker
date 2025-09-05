@@ -59,6 +59,27 @@ enable_apis() {
     print_success "APIs enabled successfully"
 }
 
+# Configure IAM permissions for Cloud Run services
+configure_iam_permissions() {
+    print_status "Configuring IAM permissions for Cloud Run services..."
+    
+    # Allow unauthenticated access to frontend
+    gcloud run services add-iam-policy-binding vin-service-checker-frontend \
+        --region=$REGION \
+        --member="allUsers" \
+        --role="roles/run.invoker" \
+        --project=$PROJECT_ID || print_warning "Frontend IAM policy may already exist"
+    
+    # Allow unauthenticated access to backend
+    gcloud run services add-iam-policy-binding vin-service-checker-backend \
+        --region=$REGION \
+        --member="allUsers" \
+        --role="roles/run.invoker" \
+        --project=$PROJECT_ID || print_warning "Backend IAM policy may already exist"
+    
+    print_success "IAM permissions configured successfully"
+}
+
 # Configure Docker authentication for GCR
 configure_docker_auth() {
     print_status "Configuring Docker authentication for Google Container Registry..."
@@ -179,6 +200,7 @@ main() {
     deploy_backend
     build_and_push_frontend
     deploy_frontend
+    configure_iam_permissions
     
     print_success "Deployment completed successfully!"
     print_status "Your application is now available at:"

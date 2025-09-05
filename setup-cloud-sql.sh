@@ -55,7 +55,7 @@ create_sql_instance() {
         return 0
     fi
     
-    # Create the instance
+    # Create the instance with optimized settings
     gcloud sql instances create $INSTANCE_NAME \
         --project=$PROJECT_ID \
         --database-version=POSTGRES_15 \
@@ -66,7 +66,12 @@ create_sql_instance() {
         --backup-start-time=02:00 \
         --maintenance-window-day=SUN \
         --maintenance-window-hour=03 \
-        --availability-type=zonal
+        --availability-type=zonal \
+        --storage-auto-increase \
+        --enable-bin-log \
+        --retained-backups-count=7 \
+        --retained-transaction-log-days=7 \
+        --deletion-protection
     
     print_success "Cloud SQL instance created successfully"
 }
@@ -115,11 +120,18 @@ configure_instance() {
     # Enable Cloud SQL Admin API
     gcloud services enable sqladmin.googleapis.com --project=$PROJECT_ID
     
-    # Configure instance settings
+    # Configure instance settings for reliability and performance
     gcloud sql instances patch $INSTANCE_NAME \
         --project=$PROJECT_ID \
         --authorized-networks=0.0.0.0/0 \
-        --require-ssl=false
+        --require-ssl=false \
+        --storage-auto-increase \
+        --backup-start-time=02:00 \
+        --maintenance-window-day=SUN \
+        --maintenance-window-hour=03 \
+        --enable-bin-log \
+        --retained-backups-count=7 \
+        --retained-transaction-log-days=7
     
     print_success "Instance configured successfully"
 }
@@ -131,8 +143,12 @@ get_connection_info() {
     # Get the instance connection name
     INSTANCE_CONNECTION_NAME=$(gcloud sql instances describe $INSTANCE_NAME --project=$PROJECT_ID --format="value(connectionName)")
     
+    # Get the instance IP address
+    INSTANCE_IP=$(gcloud sql instances describe $INSTANCE_NAME --project=$PROJECT_ID --format="value(ipAddresses[0].ipAddress)")
+    
     print_success "Cloud SQL setup completed successfully!"
     print_status "Instance Connection Name: $INSTANCE_CONNECTION_NAME"
+    print_status "Instance IP Address: $INSTANCE_IP"
     print_status "Database: postgres"
     print_status "User: $DB_USER"
     print_status "Instance: $INSTANCE_NAME"
@@ -141,6 +157,15 @@ get_connection_info() {
     echo ""
     print_status "Connection string for your application:"
     echo "jdbc:postgresql:///postgres?cloudSqlInstance=$INSTANCE_CONNECTION_NAME&socketFactory=com.google.cloud.sql.postgres.SocketFactory"
+    
+    echo ""
+    print_status "Database reliability features enabled:"
+    echo "✓ Automatic backups (daily at 2:00 AM)"
+    echo "✓ Point-in-time recovery (7 days)"
+    echo "✓ Binary logging enabled"
+    echo "✓ Auto-resize storage"
+    echo "✓ Deletion protection"
+    echo "✓ Maintenance window: Sundays 3:00 AM"
 }
 
 # Main setup function

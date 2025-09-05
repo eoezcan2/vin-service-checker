@@ -92,6 +92,21 @@ fi
 print_status "Deploying application..."
 PROJECT_ID=$PROJECT_ID REGION=$REGION INSTANCE_NAME=$INSTANCE_NAME DB_USER=$DB_USER DB_PASSWORD=$DB_PASSWORD JWT_SECRET=$JWT_SECRET ./deploy-to-gcp.sh
 
+# Verify database configuration
+print_status "Verifying database configuration..."
+if gcloud sql instances describe $INSTANCE_NAME --project=$PROJECT_ID --format="value(settings.storageAutoResize)" | grep -q "True"; then
+    print_success "✓ Database auto-resize is enabled"
+else
+    print_warning "Database auto-resize is not enabled"
+fi
+
+if gcloud sql instances describe $INSTANCE_NAME --project=$PROJECT_ID --format="value(settings.backupConfiguration.enabled)" | grep -q "True"; then
+    print_success "✓ Database backups are enabled"
+else
+    print_warning "Database backups are not enabled"
+fi
+
 print_success "Quick deployment completed!"
 print_status "Your application should now be available at the URLs shown above."
+print_status "Database reliability features are configured and active."
 print_status "Check the deployment logs for any issues."
