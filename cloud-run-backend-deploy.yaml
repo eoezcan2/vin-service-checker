@@ -1,0 +1,60 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: vin-service-checker-backend
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/execution-environment: gen2
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/startup-cpu-boost: "true"
+        run.googleapis.com/cloudsql-instances: vin-service-checker:us-central1:vin-service-checker-db
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+      - image: gcr.io/vin-service-checker/vin-service-checker-backend:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql:///postgres?cloudSqlInstance=vin-service-checker:us-central1:vin-service-checker-db&socketFactory=com.google.cloud.sql.postgres.SocketFactory"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "vin_service_user"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "Bm7jo78s+u4tLZ7bqu7ZgoZ3MzWzVagUVIH9CG2+Wxc="
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: "update"
+        - name: JWT_SECRET
+          value: "oP1BsyCc4V2EA2ELBpM8mlWTFlLjJuFiL0OTQWOJ6cv3mrddOE0SYeXeCllYepkH0hSAXQQavP3AOdI4q86RRQ=="
+        - name: SERVER_PORT
+          value: "8080"
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod"
+        - name: SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT
+          value: "org.hibernate.dialect.PostgreSQLDialect"
+        resources:
+          limits:
+            cpu: "2"
+            memory: "1Gi"
+          requests:
+            cpu: "1"
+            memory: "512Mi"
+        startupProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 120
+          periodSeconds: 30
+  traffic:
+  - percent: 100
+    latestRevision: true
+

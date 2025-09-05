@@ -71,6 +71,19 @@ function login(newToken) {
   setToken(newToken);
 }
 
+// Unauthenticated API calls for login/register
+async function unauthenticatedRequest(url, method, data) {
+  const response = await axios({
+    method,
+    url: `${API_BASE_URL}/${url}`,
+    data,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  return response;
+}
+
 export {
   isTokenPresent,
   token,
@@ -78,6 +91,7 @@ export {
   logout,
   verify,
   safeRequest,
-  setToken
+  setToken,
+  unauthenticatedRequest
 }
 

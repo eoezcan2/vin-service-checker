@@ -13,6 +13,12 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Accept build argument for API URL
+ARG VUE_APP_API_URL
+
+# Create .env file with the API URL
+RUN echo "VUE_APP_API_URL=$VUE_APP_API_URL" > .env
+
 # Build the application
 RUN npm run build
 

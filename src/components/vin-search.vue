@@ -1,7 +1,7 @@
 <script setup>
     import { ref } from 'vue'
-    import axios from 'axios'
     import { useRouter } from 'vue-router'
+    import { safeRequest } from '../api.js'
 
     const inputVin = ref('')
     const apiError = ref(false)
@@ -9,7 +9,7 @@
 
     function submitSearch() {
         if (!inputVin.value) return
-        axios.get(`http://localhost:8080/api/vin/${inputVin.value}`).then(response => {
+        safeRequest(`api/vin/${inputVin.value}`, 'GET').then(response => {
             if (response.status !== 200) {
                 throw new Error('Not found')
             }

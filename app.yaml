@@ -1,0 +1,28 @@
+runtime: java17
+instance_class: F1
+
+env_variables:
+  SPRING_DATASOURCE_URL: jdbc:postgresql:///postgres?cloudSqlInstance=${PROJECT_ID}:${REGION}:${INSTANCE_NAME}&socketFactory=com.google.cloud.sql.postgres.SocketFactory
+  SPRING_DATASOURCE_USERNAME: ${DB_USER}
+  SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+  SPRING_JPA_HIBERNATE_DDL_AUTO: update
+  JWT_SECRET: ${JWT_SECRET}
+  SERVER_PORT: 8080
+
+automatic_scaling:
+  target_cpu_utilization: 0.65
+  min_instances: 1
+  max_instances: 10
+  target_throughput_utilization: 0.6
+
+handlers:
+  - url: /.*
+    script: auto
+    secure: always
+
+inbound_services:
+  - warmup
+
+beta_settings:
+  cloud_sql_instances: ${PROJECT_ID}:${REGION}:${INSTANCE_NAME}
+

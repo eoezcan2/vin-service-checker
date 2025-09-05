@@ -3,7 +3,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { ref, computed, onMounted } from 'vue';
 import MaintenanceComponent from '../maintenance-component.vue';
 import VehiclecardComponent from '../vehiclecard-component.vue';
-import axios from 'axios';
+import { safeRequest } from '../../api.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -82,7 +82,7 @@ function getCategoryDisplayName(category) {
 async function fetchMaintenanceData() {
     try {
         loading.value = true;
-        const response = await axios.get(`http://localhost:8080/api/maintenance/${vin.value}`);
+        const response = await safeRequest(`api/maintenance/${vin.value}`, 'GET');
         maintenanceData.value = response.data;
     } catch (error) {
         console.error('Error fetching maintenance data:', error);

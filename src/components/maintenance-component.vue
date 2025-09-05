@@ -1,5 +1,4 @@
 <script setup>
-import axios from 'axios';
 import { ref, defineProps, onMounted, watch, computed } from 'vue';
 import { safeRequest } from '@/api';
 
@@ -78,7 +77,7 @@ function clearInputs() {
 }
 
 function getMaintenances() {
-    axios.get(`http://localhost:8080/api/maintenance/${props.vin}`)
+    safeRequest(`api/maintenance/${props.vin}`, 'GET')
         .then(response => {
             data.value = response.data
         })

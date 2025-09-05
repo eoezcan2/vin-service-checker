@@ -1,6 +1,5 @@
 <script setup>
-    import { isTokenPresent, login as loginUser } from '@/api';
-    import axios from 'axios';
+    import { isTokenPresent, login as loginUser, unauthenticatedRequest } from '@/api';
     import { onMounted, ref } from 'vue'
     import { useRouter } from 'vue-router'
 
@@ -38,8 +37,7 @@
         isLoginLoading.value = true
         
         try {
-            const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:8080';
-            const response = await axios.post(`${API_BASE_URL}/user/login`, {
+            const response = await unauthenticatedRequest('user/login', 'POST', {
                 username: username.value.trim(),
                 password: password.value
             })
@@ -99,8 +97,7 @@
         isRegisterLoading.value = true
         
         try {
-            const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:8080';
-            const response = await axios.post(`${API_BASE_URL}/user/register`, {
+            const response = await unauthenticatedRequest('user/register', 'POST', {
                 username: registerUsername.value.trim(),
                 email: registerEmail.value.trim(),
                 password: registerPassword.value

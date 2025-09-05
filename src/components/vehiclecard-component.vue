@@ -1,6 +1,6 @@
 <script setup>
-import axios from 'axios';
 import { defineProps, onMounted, ref } from 'vue'
+import { safeRequest } from '../api.js'
 
 const props = defineProps(['vin'])
 let data = ref([])
@@ -8,7 +8,7 @@ const loaded = ref(false)
 let imgSrc = ref('')
 
 onMounted(() => {
-    axios.get(`http://localhost:8080/api/vin/${props.vin}/data`)
+    safeRequest(`api/vin/${props.vin}/data`, 'GET')
         .then(response => {
             console.log(response)
             data.value = response.data
