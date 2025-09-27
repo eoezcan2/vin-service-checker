@@ -130,3 +130,4 @@ PROJECT_ID=your-project REGION=us-central1 INSTANCE_NAME=your-instance DB_USER=y
 - **IAM-based authentication** for service accounts
 - **Private networking** when needed
 - **SSL/TLS** for all connections
+

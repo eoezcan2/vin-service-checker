@@ -29,14 +29,6 @@ import FooterComponent from './components/footer-component.vue';
 </template>
 
 <style>
-#app {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
 
 .app-container {
   min-height: 100vh;
